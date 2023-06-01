@@ -17,8 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from dj_rest_auth.registration.views import VerifyEmailView
+
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path("accounts/", include("accounts.urls")),
-   ]
+        path('admin/', admin.site.urls),
+        path('', include('dj_rest_auth.urls')),
+        path('registration/', include('dj_rest_auth.registration.urls')),
+        path('account-confirm-email/<str:key>/', VerifyEmailView.as_view(), name='account_confirm_email'),
+]
