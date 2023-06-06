@@ -32,8 +32,12 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
-ACCOUNT_AUTHENTICATION_METHOD = "username_email"
+AUTH_USER_MODEL = "users.User"
+ACCOUNT_ADAPTER = "users.allauth_adapter.CustomAccountAdapter"
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_SIGNUP_PASSWORD_VERIFICATION = "mandatory"
 
@@ -65,6 +69,8 @@ INSTALLED_APPS = [
 
     "dj_rest_auth",
     "dj_rest_auth.registration",
+
+    'users.apps.UsersConfig',
     ]
 
 SITE_ID = 1
@@ -99,6 +105,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
 ]
 
 ROOT_URLCONF = 'django_social_media.urls'
