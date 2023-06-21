@@ -15,6 +15,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone_number = PhoneNumberField(blank=True, null=True)
     first_name = models.CharField(max_length=150, blank=True, null=True)
     last_name = models.CharField(max_length=150, blank=True, null=True)
+    friend_invitations = models.ManyToManyField('self', default=None)
+    friends = models.ManyToManyField('self', default=None)
+    blocks = models.ManyToManyField('self', default=None)
     is_staff = models.BooleanField(
         default=False,
         help_text=("Designates whether the user can log into " "this admin site."),

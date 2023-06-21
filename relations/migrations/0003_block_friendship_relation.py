@@ -6,7 +6,7 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("user_relations", "0002_remove_friendshiprelation_user1_and_more"),
+        ("relations", "0002_remove_friendshiprelation_user1_and_more"),
     ]
 
     operations = [
@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 null=True,
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name="blocks",
-                to="user_relations.friendshiprelation",
+                to="relations.friendshiprelation",
             ),
         ),
     ]

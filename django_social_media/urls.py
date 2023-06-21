@@ -27,4 +27,5 @@ urlpatterns = [
         VerifyEmailView.as_view(),
         name="account_confirm_email",
     ),
+    path("", include("relations.urls"))
 ]
