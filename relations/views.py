@@ -27,9 +27,12 @@ class FriendshipInvitationApiView(GenericAPIView):
     def get(self, request: Request) -> Response:
         """List all friendship invitations sent to current user"""
 
-        friendship_invitations = list_friendship_invitations(user=request.user, queryset=self.get_queryset())
-        serializer = self.serializer_class(friendship_invitations, many=True)
-        return Response(serializer.data)
+        try:
+            friendship_invitations = list_friendship_invitations(user=request.user, queryset=self.get_queryset())
+            serializer = self.serializer_class(friendship_invitations, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except ServiceException as e:
+            return Response({'message': str(e)}, status=status.HTTP_404_NOT_FOUND)
 
     def post(self, request: Request, friend_id: int) -> Response:
         """Send a friendship invitation to user"""
@@ -47,7 +50,7 @@ class FriendshipInvitationApiView(GenericAPIView):
             rejected_invitation = delete_friendship_invitation(user=request.user,
                                                                friend_id=friend_id,
                                                                queryset=self.get_queryset())
-            return Response(rejected_invitation, status=status.HTTP_204_NO_CONTENT)
+            return Response(rejected_invitation, status=status.HTTP_200_OK)
         except ServiceException as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
@@ -58,7 +61,7 @@ class FriendshipInvitationApiView(GenericAPIView):
             accepted_invitation = accept_friendship_invitation(user=request.user,
                                                                friend_id=friend_id,
                                                                queryset=self.get_queryset())
-            return Response(accepted_invitation, status=status.HTTP_204_NO_CONTENT)
+            return Response(accepted_invitation, status=status.HTTP_200_OK)
         except ServiceException as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
@@ -88,7 +91,7 @@ class BlockApiView(GenericAPIView):
     def post(self):
         """Block users"""
 
-    def put(self):
+    def delete(self):
         """Unblock users"""
 
 
