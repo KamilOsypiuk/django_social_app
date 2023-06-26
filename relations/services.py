@@ -6,7 +6,7 @@ from .exeptions import ServiceException
 
 
 def are_friends(user1: User, user2: int) -> bool:
-    if User.objects.filter(Q(id=user2, friends=user1) | (Q(id=user1, friends=user2))):
+    if User.objects.filter(Q(id=user2, friends=user1.pk) | (Q(id=user1.pk, friends=user2))):
         return True
 
     else:
@@ -17,10 +17,10 @@ def send_friendship_invitation(user: User, friend_id: int) -> dict:
     if User.objects.filter(Q(id=user.pk, friend_invitations=friend_id) | (Q(id=friend_id, friend_invitations=user.pk))):
         raise ServiceException("Invitation already exists")
 
-    if user == friend_id:
+    if user.pk == friend_id:
         raise ServiceException("Can't be friends with yourself")
 
-    if are_friends(user1=user.pk, user2=friend_id):
+    if are_friends(user1=user, user2=friend_id):
         raise ServiceException("You are friends already")
 
     else:
@@ -29,8 +29,10 @@ def send_friendship_invitation(user: User, friend_id: int) -> dict:
 
 
 def list_friendship_invitations(user: User, queryset: QuerySet) -> list:
-    friendship_invitation_list = queryset.filter(Q(to_user_id=user.pk) | Q(from_user_id=user.pk))
-    return friendship_invitation_list
+    if friendship_invitation_list := queryset.filter(Q(to_user_id=user.pk) | Q(from_user_id=user.pk)):
+        return friendship_invitation_list
+    else:
+        raise ServiceException('There is no invites associated with this user')
 
 
 def delete_friendship_invitation(user: User, friend_id: int, queryset: QuerySet) -> dict:
