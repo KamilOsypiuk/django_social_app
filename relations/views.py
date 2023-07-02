@@ -1,38 +1,35 @@
 from django.db.models import Q
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
+from rest_framework.mixins import ListModelMixin
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from .services import (accept_friendship_invitation, delete_friendship_invitation,
-                       list_friendship_invitations, send_friendship_invitation)
+                       send_friendship_invitation, delete_friend, block_user, unblock_user)
 from .exeptions import ServiceException
-from .serializers import UserFriendInvitationsSerializer
+from .serializers import UserFriendInvitationsSerializer, UserFriendsSerializer, UserBlocksSerializer
 
 from users.models import User
 
 # Create your views here.
 
 
-class FriendshipInvitationApiView(GenericAPIView):
+class FriendshipInvitationApiView(GenericAPIView, ListModelMixin):
     permission_classes = [IsAuthenticated, ]
     serializer_class = UserFriendInvitationsSerializer
 
     def get_queryset(self):
         user = self.request.user
-        queryset = User.friend_invitations.through.objects.filter(Q(from_user_id=user) | Q(to_user_id=user))
+        queryset = User.friend_invitations.through.objects.filter(Q(from_user_id=user) |
+                                                                  Q(to_user_id=user)).order_by('id')
         return queryset
 
     def get(self, request: Request) -> Response:
         """List all friendship invitations sent to current user"""
 
-        try:
-            friendship_invitations = list_friendship_invitations(user=request.user, queryset=self.get_queryset())
-            serializer = self.serializer_class(friendship_invitations, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except ServiceException as e:
-            return Response({'message': str(e)}, status=status.HTTP_404_NOT_FOUND)
+        return self.list(request=request)
 
     def post(self, request: Request, friend_id: int) -> Response:
         """Send a friendship invitation to user"""
@@ -43,55 +40,74 @@ class FriendshipInvitationApiView(GenericAPIView):
         except ServiceException as e:
             return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request: Request, friend_id: int) -> Response:
+    def delete(self, request: Request, invitation_id: int) -> Response:
         """Delete or reject friendship invitation"""
 
-        try:
-            rejected_invitation = delete_friendship_invitation(user=request.user,
-                                                               friend_id=friend_id,
-                                                               queryset=self.get_queryset())
-            return Response(rejected_invitation, status=status.HTTP_200_OK)
-        except ServiceException as e:
-            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+        rejected_invitation = delete_friendship_invitation(user=request.user, invitation_id=invitation_id,
+                                                           queryset=self.get_queryset())
+        return Response(rejected_invitation, status=status.HTTP_200_OK)
 
-    def put(self, request: Request, friend_id: int) -> Response:
+    def put(self, request: Request, invitation_id: int) -> Response:
         """Accept friendship invitation and add to friends list"""
 
         try:
-            accepted_invitation = accept_friendship_invitation(user=request.user,
-                                                               friend_id=friend_id,
+            accepted_invitation = accept_friendship_invitation(user=request.user, invitation_id=invitation_id,
                                                                queryset=self.get_queryset())
             return Response(accepted_invitation, status=status.HTTP_200_OK)
         except ServiceException as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
-class FriendshipRelationApiView(GenericAPIView):
-    permission_classes = [IsAuthenticated]
+class FriendshipRelationApiView(GenericAPIView, ListModelMixin):
+    permission_classes = [IsAuthenticated, ]
+    serializer_class = UserFriendsSerializer
 
     def get_queryset(self):
-        pass
+        user = self.request.user
+        queryset = User.friends.through.objects.filter(from_user_id=user).order_by('id')
+        return queryset
 
-    def get(self):
+    def get(self, request: Request) -> Response:
         """List all friends"""
 
-    def delete(self):
-        """Delete user from friends"""
+        return self.list(request=request)
+
+    def delete(self, request: Request, relation_id: int) -> Response:
+        """Remove user from friends"""
+
+        removed_friend = delete_friend(user=request.user, relation_id=relation_id, queryset=self.get_queryset())
+        return Response(removed_friend, status=status.HTTP_200_OK)
 
 
-class BlockApiView(GenericAPIView):
-    permission_classes = [IsAuthenticated]
+class BlockApiView(GenericAPIView, ListModelMixin):
+    permission_classes = [IsAuthenticated, ]
+    serializer_class = UserBlocksSerializer
 
     def get_queryset(self):
-        pass
+        user = self.request.user
+        queryset = User.blocks.through.objects.filter(Q(from_user_id=user.pk) | Q(to_user_id=user.pk)).order_by('id')
+        return queryset
 
-    def get(self):
+    def get(self, request: Request) -> Response:
         """List all blocked relations"""
 
-    def post(self):
+        return self.list(request=request)
+
+    def post(self, request: Request, user_id: int) -> Response:
         """Block users"""
 
-    def delete(self):
+        try:
+            blocked_relation = block_user(user=request.user, user_id=user_id)
+            return Response(blocked_relation, status=status.HTTP_201_CREATED)
+        except ServiceException as e:
+            return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request: Request, block_id: int):
         """Unblock users"""
 
+        try:
+            unblocked_relation = unblock_user(user=request.user, block_id=block_id, queryset=self.get_queryset())
+            return Response(unblocked_relation, status=status.HTTP_200_OK)
+        except ServiceException as e:
+            return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
