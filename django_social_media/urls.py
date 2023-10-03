@@ -18,14 +18,13 @@ from dj_rest_auth.registration.views import VerifyEmailView
 from django.contrib import admin
 from django.urls import include, path
 
+from chat.routing import websocket_urlpatterns
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("dj_rest_auth.urls")),
     path("registration/", include("dj_rest_auth.registration.urls")),
-    path(
-        "account-confirm-email/<str:key>/",
-        VerifyEmailView.as_view(),
-        name="account_confirm_email",
-    ),
-    path("", include("relations.urls"))
+    path("account-confirm-email/<str:key>/", VerifyEmailView.as_view(), name="account_confirm_email"),
+    path("", include("relations.urls")),
+    path("", include(websocket_urlpatterns))
 ]

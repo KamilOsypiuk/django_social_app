@@ -1,7 +1,7 @@
 from django.db.models import Q
 from django.test import TestCase
 
-from relations.exeptions import ServiceException
+from relations.exception import ServiceException
 from relations.services import *
 from users.models import User
 

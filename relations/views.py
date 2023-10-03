@@ -1,5 +1,6 @@
 from django.db.models import Q
 from rest_framework import status
+from rest_framework.exceptions import NotFound
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import ListModelMixin
 from rest_framework.request import Request
@@ -8,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from .services import (accept_friendship_invitation, delete_friendship_invitation,
                        send_friendship_invitation, delete_friend, block_user, unblock_user)
-from .exeptions import ServiceException
+from .exception import ServiceException
 from .serializers import UserFriendInvitationsSerializer, UserFriendsSerializer, UserBlocksSerializer
 
 from users.models import User
@@ -39,6 +40,8 @@ class FriendshipInvitationApiView(GenericAPIView, ListModelMixin):
             return Response(friendship_invitation, status=status.HTTP_201_CREATED)
         except ServiceException as e:
             return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except NotFound as e:
+            return Response({"message": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
     def delete(self, request: Request, invitation_id: int) -> Response:
         """Delete or reject friendship invitation"""

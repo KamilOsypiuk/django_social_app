@@ -22,15 +22,15 @@ urlpatterns = [
         "friends/", FriendshipRelationApiView.as_view(), name="friend-list",
     ),
     path(
-        "friends/<int:relation_id>/delete", FriendshipRelationApiView.as_view(), name='friend-delete',
+        "friends/<int:relation_id>/delete/", FriendshipRelationApiView.as_view(), name='friend-delete',
     ),
     path(
         "blocked/", BlockApiView.as_view(), name='blocked-users-list'
     ),
     path(
-        "users/<int:user_id>/block", BlockApiView.as_view(), name='block-user'
+        "users/<int:user_id>/block/", BlockApiView.as_view(), name='block-user'
     ),
     path(
-        "users/<int:block_id>/unblock", BlockApiView.as_view(), name='unblock-user'
+        "users/<int:block_id>/unblock/", BlockApiView.as_view(), name='unblock-user'
     ),
 ]
