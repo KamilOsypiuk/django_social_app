@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import NotFound
 
 from users.models import User
-from .exeptions import ServiceException
+from .exception import ServiceException
 
 
 def are_friends(user1: User, user2: int) -> bool:
